@@ -12,7 +12,8 @@ export const createFile = mutation({
         if (!identity) {
             throw new ConvexError("you must be loggend in to upload a file")
         }
-        identity.tokenIdentifier;
+
+        const user =await ctx.db.query('users').withIndex()
 
         await ctx.db.insert("files", {
             name: args.name,
@@ -32,7 +33,7 @@ export const getFiles = query({
         if (!identity) {
             return [];
         }
-        return ctx.db.query('files').withIndex("by_orgId", q =>
+        return ctx.db.query('files').withIndex("by_orgId", (q) =>
             q.eq('orgId', args.orgId)
         ).collect();
     }

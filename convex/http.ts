@@ -32,8 +32,9 @@ http.route({
                     break;
 
                 case 'organizationMembership.created':
-                    await ctx.runMutation(internal.users.createUser, {
-                        tokenIdentifier: `${result.data.id}`,
+                    await ctx.runMutation(internal.users.addOrgIdToUser, {
+                        tokenIdentifier: `${result.data.public_user_data.user_id}`,
+                        orgId: result.data.organization.id
                     });
                     break;
             }
