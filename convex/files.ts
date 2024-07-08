@@ -1,5 +1,12 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx } from './_generated/server';
+import { getUser } from "./users";
+
+async function hasAccessToOrg(ctx: QueryCtx | MutationCtx, tokenIdentifier: string, orgId: string) {
+    const user = await getUser(ctx, tokenIdentifier);
+
+    const hasAccess = user.orgIds.includes(orgId) || user.tokenIdentifier.includes(orgId);
+}
 
 export const createFile = mutation({
     args: {
@@ -12,7 +19,7 @@ export const createFile = mutation({
         if (!identity) {
             throw new ConvexError("you must be loggend in to upload a file")
         }
-        identity.tokenIdentifier;
+        
 
         await ctx.db.insert("files", {
             name: args.name,
