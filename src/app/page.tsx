@@ -35,6 +35,7 @@ export default function Home() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
+      file: "null"
     },
   });
 
@@ -67,6 +68,7 @@ export default function Home() {
               Upload File
             </Button>
           </DialogTrigger>
+          
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="mb-8">Upload your File Here</DialogTitle>
