@@ -24,7 +24,8 @@ import { useForm } from "react-hook-form"
 
 const formSchema = z.object({
   title: z.string().min(1).max(200),
-  file: z.any(),
+  file: z.custom<FileList>((val) => val instanceof FileList, "Required")
+  .refine((files) => files.length > 0,  `Required`)
 })
 
 export default function Home() {
@@ -35,9 +36,11 @@ export default function Home() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
-      file: "null"
+      file: undefined,
     },
   });
+
+  const fileRef = form.register("file");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
@@ -92,12 +95,14 @@ export default function Home() {
                     <FormField
                       control={form.control}
                       name="file"
-                      render={({ field }) => (
+                      render={() => (
                         <FormItem>
                           <FormLabel>File</FormLabel>
                           <FormControl>
-                            <Input  type="file" 
-                            {...field} />
+                            <Input  
+                            type="file" 
+                            {...fileRef} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
