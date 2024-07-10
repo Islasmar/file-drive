@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   title: z.string().min(1).max(200),
@@ -29,8 +31,10 @@ const formSchema = z.object({
 })
 
 export default function Home() {
+  const { toast } = useToast();
   const organization = useOrganization();
   const user = useUser();
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,14 +46,44 @@ export default function Home() {
 
   const fileRef = form.register("file");
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values);
+    console.log(values.file);
+    if (!orgId) return;
+
+    const postUrl = await generateUploadUrl();
+
+    const result = await fetch(postUrl, {
+      method: "POST",
+      headers: { "Content-Type": values.file[0].type },
+      body: values.file[0],
+    });
+
+  const { storageId } = await result.json();
+ 
+  await createFile({
+    name: values.title,
+    fileId: storageId,
+    orgId,
+  });
+
+
+  setIsFileDialogOpen(false)
+
+  toast({
+    variant: "default",
+    
+      title: "File Uploaded",
+      description: "Now everoyone can view your file",
+  })
   }
 
   let orgId: string | undefined = undefined;
   if (organization.isLoaded && user.isLoaded) {
     orgId = organization.organization?.id ?? user.user?.id
   }
+
+  const [isFileDialogOpen, setIsFileDialogOpen] =useState(false);
 
   const files = useQuery(api.files.getFiles, orgId ? { orgId } : "skip");
   const createFile = useMutation(api.files.createFile);
@@ -59,14 +93,10 @@ export default function Home() {
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold">Your Files</h1>
 
-        <Dialog>
+        <Dialog open={isFileDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => {
-              if (!orgId) return;
-              createFile({
-                name: "hello word",
-                orgId,
-              });
+
             }}>
               Upload File
             </Button>
